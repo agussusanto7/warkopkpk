@@ -120,7 +120,7 @@
                 <div style="display:flex;gap:10px;flex-wrap:wrap;" id="photoGrid">
                     @foreach($gallery->photos as $photo)
                         <div style="position:relative;display:inline-block;" class="photo-item">
-                            <img src="{{ asset('storage/' . ltrim($photo, '/')) }}"
+                            <img src="{{ url('/gallery-img/' . ltrim($photo, '/')) }}"
                                  style="width:100px;height:75px;object-fit:cover;border-radius:10px;border:2px solid #e5e7eb;"
                                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2275%22%3E%3Crect fill=%22%23374151%22 width=%22100%22 height=%2275%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%239ca3af%22%3E📷%3C/text%3E%3C/svg%3E'">
                             <button type="button" onclick="deletePhoto('{{ route('admin.gallery.removePhoto', $gallery) }}', '{{ addslashes($photo) }}')"

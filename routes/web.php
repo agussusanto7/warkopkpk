@@ -15,6 +15,21 @@ use App\Http\Controllers\AdminMilestoneController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\AdminGalleryController;
 
+// Serve gallery images via PHP (tanpa exec/symlink)
+Route::get('/gallery-img/{path}', function ($path) {
+    // Sanitize path - prevent directory traversal
+    $safePath = str_replace(['../', '..\\', "\0", '..'], '', $path);
+    $file = storage_path('app/public/' . $safePath);
+
+    if (file_exists($file)) {
+        $mime = mime_content_type($file);
+        return response(file_get_contents($file))
+            ->header('Content-Type', $mime)
+            ->header('Cache-Control', 'public, max-age=31536000');
+    }
+    abort(404);
+})->where('path', '.*');
+
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/menu', [MenuController::class, 'index'])->name('menu');

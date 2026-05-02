@@ -52,12 +52,9 @@ class Gallery extends Model
         if (!$this->cover_image) {
             return null;
         }
-        // Support both old path (with storage/) and new path
         $path = ltrim($this->cover_image, '/');
-        if (str_starts_with($path, 'storage/')) {
-            return asset($path);
-        }
-        return asset('storage/' . $path);
+        // Use PHP route to serve images (works without storage symlink)
+        return url('/gallery-img/' . $path);
     }
 
     public function getPhotoUrlsAttribute(): array
@@ -74,10 +71,7 @@ class Gallery extends Model
                 return null;
             }
             $path = ltrim($photo, '/');
-            if (str_starts_with($path, 'storage/')) {
-                return asset($path);
-            }
-            return asset('storage/' . $path);
+            return url('/gallery-img/' . $path);
         }, $photos)));
     }
 
