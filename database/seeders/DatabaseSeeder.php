@@ -11,6 +11,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call([
+            SiteSettingSeeder::class,
+        ]);
+
         // Create admin user
         User::updateOrCreate(
             ['email' => 'admin@warkopkpk.com'],
