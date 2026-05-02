@@ -43,6 +43,8 @@
                 <li><a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">Tentang Kami</a></li>
                 <li><a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Kontak</a></li>
                 <li><a href="https://wa.me/{{ $siteSettings['whatsapp'] }}?text=Halo%20Warkop%20KPK!" class="nav-link nav-cta" target="_blank">📱 WhatsApp</a></li>
+                <li class="nav-divider"></li>
+                <li><a href="{{ route('login') }}" class="nav-link nav-admin">🔐 Admin</a></li>
             </ul>
         </div>
     </nav>

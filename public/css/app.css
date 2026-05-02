@@ -49,6 +49,21 @@ ul{list-style:none}
   background:rgba(37,211,102,.25)!important;
   border-color:rgba(37,211,102,.5)!important;
 }
+.nav-admin{
+  color: var(--gold) !important;
+  border: 1px solid rgba(200, 149, 108, 0.3) !important;
+  margin-left: 8px;
+}
+.nav-admin:hover{
+  background: rgba(200, 149, 108, 0.15) !important;
+  border-color: var(--gold) !important;
+}
+.nav-divider{
+  width: 1px;
+  height: 24px;
+  background: rgba(200, 149, 108, 0.2);
+  margin: 0 8px;
+}
 .nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px}
 .hamburger,.hamburger::before,.hamburger::after{display:block;width:24px;height:2px;background:var(--cream);transition:var(--transition)}
 .hamburger{position:relative}
