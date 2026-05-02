@@ -52,6 +52,12 @@
             <a href="{{ route('admin.milestones.index') }}" class="sidebar-link {{ request()->routeIs('admin.milestones.*') ? 'active' : '' }}">
                 <span class="link-icon">📅</span> Milestone
             </a>
+            <a href="{{ route('admin.gallery.index') }}" class="sidebar-link {{ request()->routeIs('admin.gallery.*') ? 'active' : '' }}">
+                <span class="link-icon">📷</span> Gallery
+            </a>
+            <a href="{{ route('admin.gallery.categories') }}" class="sidebar-link {{ request()->routeIs('admin.gallery.categories*') ? 'active' : '' }}" style="padding-left:44px;font-size:0.9rem;">
+                <span class="link-icon">🏷️</span> Kategori
+            </a>
             <div class="sidebar-divider"></div>
             <a href="{{ route('home') }}" class="sidebar-link" target="_blank">
                 <span class="link-icon">🌐</span> Lihat Website
@@ -85,6 +91,11 @@
         <div class="admin-content">
             @if(session('success'))
             <div class="alert-success-admin">✅ {{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+            <div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:.9rem;">
+                ❌ {{ session('error') }}
+            </div>
             @endif
             @yield('content')
         </div>

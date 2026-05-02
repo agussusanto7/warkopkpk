@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SiteSettingSeeder::class,
             TestimonialSeeder::class,
+            GalleryCategorySeeder::class,
         ]);
 
         // Create admin user

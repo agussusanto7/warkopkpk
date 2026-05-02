@@ -12,10 +12,14 @@ use App\Http\Controllers\AdminDatabaseController;
 use App\Http\Controllers\AdminFeedbackController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminMilestoneController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\AdminGalleryController;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/menu', [MenuController::class, 'index'])->name('menu');
+Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+Route::get('/gallery/{gallery}', [GalleryController::class, 'show'])->name('gallery.show');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -62,4 +66,22 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/milestones', [AdminMilestoneController::class, 'store'])->name('milestones.store');
     Route::put('/milestones/{milestone}', [AdminMilestoneController::class, 'update'])->name('milestones.update');
     Route::delete('/milestones/{milestone}', [AdminMilestoneController::class, 'destroy'])->name('milestones.destroy');
+
+    // Gallery management
+    Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
+    Route::get('/gallery/create', [AdminGalleryController::class, 'create'])->name('gallery.create');
+    Route::post('/gallery', [AdminGalleryController::class, 'store'])->name('gallery.store');
+    Route::get('/gallery/{gallery}/edit', [AdminGalleryController::class, 'edit'])->name('gallery.edit');
+    Route::put('/gallery/{gallery}', [AdminGalleryController::class, 'update'])->name('gallery.update');
+    Route::delete('/gallery/{gallery}', [AdminGalleryController::class, 'destroy'])->name('gallery.destroy');
+    Route::post('/gallery/{gallery}/toggle', [AdminGalleryController::class, 'togglePublish'])->name('gallery.toggle');
+
+    // Gallery categories
+    Route::get('/gallery/categories', [AdminGalleryController::class, 'categoryIndex'])->name('gallery.categories');
+    Route::post('/gallery/categories', [AdminGalleryController::class, 'categoryStore'])->name('gallery.category.store');
+    Route::put('/gallery/categories/{category}', [AdminGalleryController::class, 'categoryUpdate'])->name('gallery.category.update');
+    Route::delete('/gallery/categories/{category}', [AdminGalleryController::class, 'categoryDestroy'])->name('gallery.category.destroy');
+
+    // Remove single photo
+    Route::delete('/gallery/{gallery}/photo', [AdminGalleryController::class, 'removePhoto'])->name('gallery.removePhoto');
 });
