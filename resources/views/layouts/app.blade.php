@@ -40,21 +40,9 @@
             <ul class="nav-menu" id="navMenu">
                 <li><a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Beranda</a></li>
                 <li><a href="{{ route('menu') }}" class="nav-link {{ request()->routeIs('menu') ? 'active' : '' }}">Menu</a></li>
-                <li class="nav-dropdown">
-                    <a href="{{ route('gallery') }}" class="nav-link nav-dropdown-toggle {{ request()->routeIs('gallery*') ? 'active' : '' }}">
-                        Gallery <span class="dropdown-arrow">▼</span>
-                    </a>
-                    <div class="nav-dropdown-menu">
-                        <a href="{{ route('gallery') }}" class="nav-dropdown-item {{ !request()->has('category') ? 'active' : '' }}">
-                            📷 Semua Momen
-                        </a>
-                        @if(isset($galleryCategories))
-                            @foreach($galleryCategories as $cat)
-                                <a href="{{ route('gallery') }}?category={{ $cat->slug }}" class="nav-dropdown-item">
-                                    {{ $cat->icon }} {{ $cat->name }}
-                                </a>
-                            @endforeach
-                        @endif
+                <li><a href="{{ route('gallery') }}" class="nav-link {{ request()->routeIs('gallery*') ? 'active' : '' }}">Gallery</a></li>
+                <li><a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">Tentang Kami</a></li>
+                <li><a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Kontak</a></li>
                     </div>
                 </li>
                 <li><a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">Tentang Kami</a></li>
