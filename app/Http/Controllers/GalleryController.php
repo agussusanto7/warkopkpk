@@ -37,6 +37,8 @@ class GalleryController extends Controller
      */
     public function apiIndex(Request $request)
     {
+        $categories = GalleryCategory::active()->sorted()->get();
+
         $query = Gallery::with('category')->published()->sorted();
 
         if ($request->has('category') && $request->category !== 'all') {
@@ -45,10 +47,21 @@ class GalleryController extends Controller
 
         $galleries = $query->paginate(9);
 
+        $currentCategory = $request->get('category', 'all');
+
+        // Generate filter buttons HTML
+        $filtersHtml = '<button class="filter-btn ' . ($currentCategory === 'all' ? 'active' : '') . '" onclick="loadGallery(null)">📷 Semua Momen</button>';
+        foreach ($categories as $cat) {
+            $isActive = $currentCategory === $cat->slug;
+            $filtersHtml .= '<button class="filter-btn ' . ($isActive ? 'active' : '') . '" onclick="loadGallery(\'' . $cat->slug . '\')"' . ($isActive ? '' : ' style="border-color: ' . $cat->color . '40;"') . '>' . $cat->icon . ' ' . $cat->name . '</button>';
+        }
+
         return response()->json([
             'html' => view('gallery-grid-partial', compact('galleries'))->render(),
             'hasMore' => $galleries->hasMorePages(),
             'total' => $galleries->total(),
+            'filtersHtml' => $filtersHtml,
+            'currentCategory' => $currentCategory,
         ]);
     }
 

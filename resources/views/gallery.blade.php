@@ -470,20 +470,11 @@
             <p>Kumpulan dokumentasi momen-momen kebersamaan — dari bukber, nobar, live music, sampai outing bareng!</p>
         </div>
 
-        {{-- Filter Tabs (AJAX - no page refresh) --}}
-        <div class="gallery-filters" id="galleryFilters">
-            <button class="filter-btn {{ !request()->has('category') || request()->get('category') == 'all' ? 'active' : '' }}"
-                    onclick="loadGallery(null)">
-                📷 Semua Momen
-            </button>
-            @foreach($categories as $cat)
-                <button class="filter-btn {{ request()->get('category') == $cat->slug ? 'active' : '' }}"
-                        onclick="loadGallery('{{ $cat->slug }}')"
-                        style="{{ request()->get('category') == $cat->slug ? '' : 'border-color: ' . $cat->color . '40;' }}">
-                    {{ $cat->icon }} {{ $cat->name }}
-                </button>
-            @endforeach
+        {{-- Filter Tabs (AJAX loaded) --}}
+        <div id="galleryFiltersLoader" style="display:none;text-align:center;padding:15px;">
+            <div style="display:inline-block;width:30px;height:30px;border:3px solid rgba(200,149,108,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
         </div>
+        <div class="gallery-filters" id="galleryFilters"></div>
 
         {{-- Loading Indicator --}}
         <div id="galleryLoader" style="display:none;text-align:center;padding:40px;">
@@ -718,6 +709,40 @@ document.head.appendChild(lightboxStyle);
 
 let currentCategory = null;
 let isLoading = false;
+let filtersLoaded = false;
+
+// Load filters on page init
+function initGallery() {
+    const filtersContainer = document.getElementById('galleryFilters');
+    const filtersLoader = document.getElementById('galleryFiltersLoader');
+
+    filtersLoader.style.display = 'block';
+    filtersContainer.innerHTML = '';
+
+    // Check URL for initial category
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialCategory = urlParams.get('category');
+
+    let url = '/api/gallery';
+    if (initialCategory) url += '?category=' + initialCategory;
+
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        filtersLoader.style.display = 'none';
+        filtersContainer.innerHTML = data.filtersHtml || '';
+        currentCategory = data.currentCategory === 'all' ? null : data.currentCategory;
+        filtersLoaded = true;
+    })
+    .catch(error => {
+        console.error('Error loading filters:', error);
+        filtersLoader.style.display = 'none';
+        filtersLoaded = true;
+    });
+}
+
+// Initialize filters on page load
+initGallery();
 
 function loadGallery(category = null, page = null) {
     if (isLoading) return;
@@ -759,6 +784,14 @@ function loadGallery(category = null, page = null) {
         grid.style.opacity = '1';
         grid.style.pointerEvents = 'auto';
         loader.style.display = 'none';
+
+        // Update filters (no page jump - filters replaced in place)
+        const filtersContainer = document.getElementById('galleryFilters');
+        const filtersLoader = document.getElementById('galleryFiltersLoader');
+        if (data.filtersHtml) {
+            filtersLoader.style.display = 'none';
+            filtersContainer.innerHTML = data.filtersHtml;
+        }
 
         // Update pagination if exists
         if (data.hasMore && pagination) {
