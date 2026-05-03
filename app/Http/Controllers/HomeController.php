@@ -22,7 +22,7 @@ class HomeController extends Controller
                     'name' => $item->name,
                     'description' => $item->description,
                     'price' => $item->formatted_price,
-                    'image' => $item->image ? 'storage/' . $item->image : 'images/coffee-latte.png',
+                    'image' => $item->image ? '/img/' . $item->image : 'images/coffee-latte.png',
                 ];
             })->toArray();
 

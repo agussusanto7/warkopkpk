@@ -19,7 +19,7 @@
         @forelse($sectionImages as $img)
         <div class="image-card {{ $img->is_active ? 'active' : '' }}">
             <div class="image-preview">
-                <img src="{{ asset('storage/' . $img->image_path) }}" alt="{{ $img->title }}">
+                <img src="{{ url('/img/' . $img->image_path) }}" alt="{{ $img->title }}">
                 @if($img->is_active)
                 <span class="active-badge">✓ AKTIF</span>
                 @endif

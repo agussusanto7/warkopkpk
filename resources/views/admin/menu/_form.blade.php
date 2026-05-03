@@ -24,7 +24,7 @@
     @error('image') <span class="form-error">{{ $message }}</span> @enderror
     @if($item?->image)
     <div style="margin-top:10px;display:flex;align-items:center;gap:12px">
-        <img src="{{ asset('storage/' . $item->image) }}" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid rgba(200,149,108,.2)">
+        <img src="{{ url('/img/' . $item->image) }}" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid rgba(200,149,108,.2)">
         <div>
             <span style="color:var(--text-muted);font-size:.85rem">Foto saat ini</span>
             <button type="button" onclick="confirmDeleteImage({{ $item->id }})" class="btn btn-danger btn-sm" style="display:block;margin-top:6px">

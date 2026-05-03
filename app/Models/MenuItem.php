@@ -44,7 +44,7 @@ class MenuItem extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            return asset('storage/' . $this->image);
+            return url('/img/' . $this->image);
         }
         return null;
     }

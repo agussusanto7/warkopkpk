@@ -29,7 +29,7 @@ class MenuController extends Controller
                 'desc' => $item->description,
                 'notes' => $item->notes,
                 'price' => $item->formatted_price,
-                'image' => $item->image ? 'storage/' . $item->image : 'images/coffee-latte.png',
+                'image' => $item->image ? '/img/' . $item->image : 'images/coffee-latte.png',
             ];
         }
 

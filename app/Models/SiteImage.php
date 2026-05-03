@@ -13,7 +13,7 @@ class SiteImage extends Model
     public static function getImage($sectionKey)
     {
         $image = self::where('section_key', $sectionKey)->where('is_active', true)->latest()->first();
-        return $image ? asset('storage/' . $image->image_path) : null;
+        return $image ? url('/img/' . $image->image_path) : null;
     }
 
     public static function getSections()
