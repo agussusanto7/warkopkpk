@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
+use App\Services\ImageCompressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,7 +51,7 @@ class AdminMenuController extends Controller
             'notes' => 'nullable|string|max:500',
             'price' => 'required|numeric|min:0',
             'category' => 'required|in:kopi,non-kopi,makanan,snack',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp', // Tanpa batas ukuran - dikompres otomatis
             'is_available' => 'boolean',
             'is_favorite' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
@@ -62,9 +63,10 @@ class AdminMenuController extends Controller
         $validated['is_favorite'] = $request->has('is_favorite');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
-        // Handle image upload
+        // Handle image upload dengan kompresi otomatis
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('menu-images', 'public');
+            $imageService = new ImageCompressService();
+            $validated['image'] = $imageService->compressAndStore($request->file('image'), 'menu-images');
         }
 
         MenuItem::create($validated);
@@ -85,7 +87,7 @@ class AdminMenuController extends Controller
             'notes' => 'nullable|string|max:500',
             'price' => 'required|numeric|min:0',
             'category' => 'required|in:kopi,non-kopi,makanan,snack',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp', // Tanpa batas ukuran - dikompres otomatis
             'is_available' => 'boolean',
             'is_favorite' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
@@ -97,13 +99,14 @@ class AdminMenuController extends Controller
         $validated['is_favorite'] = $request->has('is_favorite');
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
-        // Handle image upload
+        // Handle image upload dengan kompresi otomatis
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($menuItem->image) {
                 Storage::disk('public')->delete($menuItem->image);
             }
-            $validated['image'] = $request->file('image')->store('menu-images', 'public');
+            $imageService = new ImageCompressService();
+            $validated['image'] = $imageService->compressAndStore($request->file('image'), 'menu-images');
         }
 
         $menuItem->update($validated);

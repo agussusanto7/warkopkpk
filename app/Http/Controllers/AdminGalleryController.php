@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Gallery;
 use App\Models\GalleryCategory;
+use App\Services\ImageCompressService;
 use Illuminate\Http\Request;
 
 class AdminGalleryController extends Controller
@@ -55,20 +56,22 @@ class AdminGalleryController extends Controller
             'sort_order' => 0,
         ];
 
-        // Cover image
+        // Cover image - kompres otomatis
         $file = $request->file('cover_image');
         if ($file && $file->getSize() > 0) {
-            $data['cover_image'] = $file->store('galleries', 'public');
+            $imageService = new ImageCompressService();
+            $data['cover_image'] = $imageService->compressAndStore($file, 'galleries');
         }
 
-        // Photos
+        // Photos - kompres otomatis
         $filePhotos = $request->file('photos');
         if ($filePhotos) {
             $allFiles = is_array($filePhotos) ? $filePhotos : [$filePhotos];
+            $imageService = new ImageCompressService();
             $paths = [];
             foreach ($allFiles as $p) {
                 if ($p && $p->getSize() > 0) {
-                    $paths[] = $p->store('galleries/photos', 'public');
+                    $paths[] = $imageService->compressAndStore($p, 'galleries/photos');
                 }
             }
             if (!empty($paths)) {
@@ -129,7 +132,8 @@ class AdminGalleryController extends Controller
             if ($gallery->cover_image) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($gallery->cover_image);
             }
-            $data['cover_image'] = $file->store('galleries', 'public');
+            $imageService = new ImageCompressService();
+            $data['cover_image'] = $imageService->compressAndStore($file, 'galleries');
         }
 
         // Photos — add new OR replace all
@@ -139,10 +143,11 @@ class AdminGalleryController extends Controller
         if ($filePhotos) {
             $allFiles = is_array($filePhotos) ? $filePhotos : [$filePhotos];
             $newPaths = [];
+            $imageService = new ImageCompressService();
 
             foreach ($allFiles as $p) {
                 if ($p && $p->getSize() > 0) {
-                    $newPaths[] = $p->store('galleries/photos', 'public');
+                    $newPaths[] = $imageService->compressAndStore($p, 'galleries/photos');
                 }
             }
 

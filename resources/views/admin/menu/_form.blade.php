@@ -19,9 +19,10 @@
 </div>
 
 <div class="form-group">
-    <label for="image">Foto Menu <small style="color:var(--text-muted)">(JPG, PNG, WebP, max 2MB)</small></label>
+    <label for="image">Foto Menu <small style="color:var(--text-muted)">(JPG, PNG, WebP - akan dikompres otomatis)</small></label>
     <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="admin-input" onchange="previewImage(event)">
     @error('image') <span class="form-error">{{ $message }}</span> @enderror
+    <small style="color:var(--text-muted);display:block;margin-top:4px">📸 Gambar akan dikompres otomatis menjadi maks 1200x1200px - jadi upload file besar pun tidak masalah!</small>
     @if($item?->image)
     <div style="margin-top:10px;display:flex;align-items:center;gap:12px">
         <img src="{{ url('/img/' . $item->image) }}" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid rgba(200,149,108,.2)">

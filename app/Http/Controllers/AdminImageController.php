@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SiteImage;
+use App\Services\ImageCompressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,10 +27,15 @@ class AdminImageController extends Controller
         $validated = $request->validate([
             'section_key' => 'required|string',
             'title' => 'required|string|max:255',
-            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp', // Tanpa batas ukuran - dikompres otomatis
         ]);
 
         $path = $request->file('image')->store('site-images', 'public');
+
+        // Kompres gambar dengan ImageCompressService
+        $imageService = new ImageCompressService();
+        $file = $request->file('image');
+        $path = $imageService->compressAndStore($file, 'site-images');
 
         // If setting as active, deactivate others in same section
         if ($request->boolean('is_active')) {

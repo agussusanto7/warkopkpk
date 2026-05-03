@@ -97,7 +97,7 @@
                      onclick="document.getElementById('photoInput').click()">
                     <div id="photoPlaceholder">
                         <div style="font-size:3rem;margin-bottom:10px;opacity:0.5;">📸</div>
-                        <p style="color:#6b7288;font-size:0.9rem;">Klik atau drag & drop untuk tambah foto baru<br><small style="color:#9ca3af;">Foto lama akan <strong style="color:#059669;">TETAP tersimpan</strong></small></p>
+                        <p style="color:#6b7280;font-size:0.9rem;">Klik atau drag & drop untuk tambah foto baru<br><small style="color:#9ca3af;">Foto lama akan <strong style="color:#059669;">TETAP tersimpan</strong> — Semua foto dikompres otomatis</small></p>
                     </div>
                     <div id="photoPreviewGrid" style="display:none;gap:10px;flex-wrap:wrap;margin-top:15px;"></div>
                 </div>

@@ -73,7 +73,7 @@
                      style="border:3px dashed #e5e7eb;border-radius:16px;padding:40px;text-align:center;cursor:pointer;transition:all 0.3s;background:#fafafa;">
                     <div id="coverPlaceholder">
                         <div style="font-size:3rem;margin-bottom:10px;opacity:0.5;">📷</div>
-                        <p style="color:#6b7280;font-size:0.9rem;">Klik untuk upload cover<br><small style="color:#9ca3af;">JPG/PNG, Max 5MB</small></p>
+                        <p style="color:#6b7280;font-size:0.9rem;">Klik untuk upload cover<br><small style="color:#9ca3af;">JPG/PNG - akan dikompres otomatis (maks 1400x1000px)</small></p>
                     </div>
                     <img id="coverImg" src="" style="max-height:200px;border-radius:12px;display:none;">
                 </div>
@@ -92,7 +92,7 @@
                      onclick="document.getElementById('photoInput').click()">
                     <div id="photoPlaceholder">
                         <div style="font-size:3rem;margin-bottom:10px;opacity:0.5;">📸</div>
-                        <p style="color:#6b7288;font-size:0.9rem;">Klik atau drag & drop untuk upload foto<br><small style="color:#9ca3af;">Unlimited foto — JPG/PNG/WebP</small></p>
+                        <p style="color:#6b7288;font-size:0.9rem;">Klik atau drag & drop untuk upload foto<br><small style="color:#9ca3af;">Unlimited foto — semua akan dikompres otomatis (maks 1200x900px)</small></p>
                     </div>
                     <div id="photoPreviewGrid" style="display:none;gap:10px;flex-wrap:wrap;margin-top:15px;"></div>
                 </div>
