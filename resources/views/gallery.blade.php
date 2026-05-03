@@ -256,6 +256,16 @@
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    transition: opacity .3s ease;
+}
+
+/* Image loading state */
+.lightbox-content img.loading {
+    opacity: 0.3;
+}
+
+.lightbox-content img.loaded {
+    opacity: 1;
 }
 
 .lightbox-close {
@@ -438,22 +448,28 @@
             <p>Kumpulan dokumentasi momen-momen kebersamaan — dari bukber, nobar, live music, sampai outing bareng!</p>
         </div>
 
-        {{-- Filter Tabs --}}
-        <div class="gallery-filters">
-            <a href="{{ route('gallery') }}"
-               class="filter-btn {{ !request()->has('category') || request()->get('category') == 'all' ? 'active' : '' }}">
+        {{-- Filter Tabs (AJAX - no page refresh) --}}
+        <div class="gallery-filters" id="galleryFilters">
+            <button class="filter-btn {{ !request()->has('category') || request()->get('category') == 'all' ? 'active' : '' }}"
+                    onclick="loadGallery(null)">
                 📷 Semua Momen
-            </a>
+            </button>
             @foreach($categories as $cat)
-                <a href="{{ route('gallery') }}?category={{ $cat->slug }}"
-                   class="filter-btn {{ request()->get('category') == $cat->slug ? 'active' : '' }}"
-                   style="{{ request()->get('category') == $cat->slug ? '' : 'border-color: ' . $cat->color . '40;' }}">
+                <button class="filter-btn {{ request()->get('category') == $cat->slug ? 'active' : '' }}"
+                        onclick="loadGallery('{{ $cat->slug }}')"
+                        style="{{ request()->get('category') == $cat->slug ? '' : 'border-color: ' . $cat->color . '40;' }}">
                     {{ $cat->icon }} {{ $cat->name }}
-                </a>
+                </button>
             @endforeach
         </div>
 
-        {{-- Gallery Grid --}}
+        {{-- Loading Indicator --}}
+        <div id="galleryLoader" style="display:none;text-align:center;padding:40px;">
+            <div style="display:inline-block;width:40px;height:40px;border:4px solid rgba(200,149,108,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <p style="color:var(--text-secondary);margin-top:15px;">Memuat gallery...</p>
+        </div>
+
+        {{-- Gallery Grid (AJAX loaded) --}}
         <div class="gallery-grid" id="galleryGrid">
             @forelse($galleries as $gallery)
                 @php
@@ -516,9 +532,9 @@
             @endforelse
         </div>
 
-        {{-- Pagination --}}
+        {{-- Pagination (AJAX akan handle ini) --}}
         @if($galleries->hasPages())
-            <div class="gallery-pagination">
+            <div class="gallery-pagination" id="galleryPagination">
                 {{ $galleries->links() }}
             </div>
         @endif
@@ -531,6 +547,10 @@
     <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">◀</button>
     <div class="lightbox-content">
         <img id="lightboxImage" src="" alt="">
+        {{-- Loading Spinner --}}
+        <div id="lightboxLoader" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;">
+            <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:lightboxSpin .8s linear infinite;"></div>
+        </div>
     </div>
     <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">▶</button>
     <div class="lightbox-info" id="lightboxInfo" style="display:none;">
@@ -544,6 +564,20 @@
 <script>
 let currentPhotos = [];
 let currentIndex = 0;
+
+function showLightboxLoader(show) {
+    const loader = document.getElementById('lightboxLoader');
+    const img = document.getElementById('lightboxImage');
+    if (show) {
+        loader.style.display = 'block';
+        img.classList.remove('loaded');
+        img.classList.add('loading');
+    } else {
+        loader.style.display = 'none';
+        img.classList.remove('loading');
+        img.classList.add('loaded');
+    }
+}
 
 function openLightbox(card) {
     const photosData = card.getAttribute('data-photos');
@@ -573,7 +607,13 @@ function openLightbox(card) {
 
     if (currentPhotos.length > 0) {
         currentIndex = 0;
+        showLightboxLoader(true);
+
+        img.onload = function() {
+            showLightboxLoader(false);
+        };
         img.onerror = function() {
+            showLightboxLoader(false);
             // If photo fails to load, try next or show placeholder
             if (currentIndex < currentPhotos.length - 1) {
                 currentIndex++;
@@ -587,6 +627,7 @@ function openLightbox(card) {
         info.style.display = 'block';
     } else if (card.querySelector('.gallery-card-image img')) {
         img.src = card.querySelector('.gallery-card-image img').src;
+        showLightboxLoader(false);
         info.style.display = 'none';
     }
 
@@ -598,6 +639,7 @@ function openLightbox(card) {
 function closeLightbox() {
     document.getElementById('lightbox').classList.remove('active');
     document.body.style.overflow = '';
+    showLightboxLoader(false);
     // reset
     setTimeout(() => {
         document.getElementById('lightboxImage').src = '';
@@ -606,8 +648,22 @@ function closeLightbox() {
 
 function navigateLightbox(direction) {
     if (currentPhotos.length <= 1) return;
+
+    // Show loader before loading next image
+    showLightboxLoader(true);
+
     currentIndex = (currentIndex + direction + currentPhotos.length) % currentPhotos.length;
-    document.getElementById('lightboxImage').src = currentPhotos[currentIndex];
+    const img = document.getElementById('lightboxImage');
+
+    img.onload = function() {
+        showLightboxLoader(false);
+        document.getElementById('lightboxCounter').textContent = (currentIndex + 1) + ' / ' + currentPhotos.length;
+    };
+    img.onerror = function() {
+        showLightboxLoader(false);
+    };
+
+    img.src = currentPhotos[currentIndex];
     document.getElementById('lightboxCounter').textContent = (currentIndex + 1) + ' / ' + currentPhotos.length;
 }
 
@@ -623,5 +679,115 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
     if (e.key === 'ArrowRight') navigateLightbox(1);
 });
+
+// Add spin animation for lightbox loader
+const lightboxStyle = document.createElement('style');
+lightboxStyle.textContent = `
+    @keyframes lightboxSpin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+`;
+document.head.appendChild(lightboxStyle);
+
+// ============================================
+// AJAX Gallery Filter (No Page Refresh)
+// ============================================
+
+let currentCategory = null;
+let isLoading = false;
+
+function loadGallery(category = null, page = null) {
+    if (isLoading) return;
+    isLoading = true;
+
+    currentCategory = category;
+
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (category === null) {
+            btn.classList.toggle('active', btn.getAttribute('onclick').includes('loadGallery(null)'));
+        } else {
+            btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${category}'`));
+        }
+    });
+
+    // Show loader, hide grid
+    const loader = document.getElementById('galleryLoader');
+    const grid = document.getElementById('galleryGrid');
+    const pagination = document.getElementById('galleryPagination');
+
+    loader.style.display = 'block';
+    grid.style.opacity = '0.5';
+    grid.style.pointerEvents = 'none';
+
+    // Build URL
+    let url = '/gallery';
+    let params = [];
+    if (category) params.push('category=' + category);
+    if (page) params.push('page=' + page);
+    if (params.length > 0) url += '?' + params.join('&');
+
+    // AJAX request
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update grid with new content
+        grid.innerHTML = data.html;
+        grid.style.opacity = '1';
+        grid.style.pointerEvents = 'auto';
+        loader.style.display = 'none';
+
+        // Update pagination if exists
+        if (data.hasMore && pagination) {
+            pagination.style.display = 'flex';
+        }
+
+        // Re-bind image load events
+        grid.querySelectorAll('img').forEach(img => {
+            img.addEventListener('load', () => img.classList.add('loaded'));
+            img.addEventListener('error', () => img.classList.add('loaded'));
+        });
+
+        // Scroll to gallery section smoothly
+        document.getElementById('galleryGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        isLoading = false;
+    })
+    .catch(error => {
+        console.error('Error loading gallery:', error);
+        loader.style.display = 'none';
+        grid.style.opacity = '1';
+        grid.style.pointerEvents = 'auto';
+        isLoading = false;
+    });
+}
+
+// Handle pagination clicks via AJAX
+document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('.gallery-pagination a');
+    if (paginationLink && document.getElementById('galleryGrid')) {
+        e.preventDefault();
+        const url = paginationLink.getAttribute('href');
+        const urlObj = new URL(url, window.location.origin);
+        const page = urlObj.searchParams.get('page');
+        loadGallery(currentCategory, page);
+    }
+});
+
+// Add spin animation for loader
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endsection

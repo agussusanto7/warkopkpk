@@ -18,6 +18,15 @@ class GalleryController extends Controller
             $query->byCategory($request->category);
         }
 
+        // Handle AJAX request
+        if ($request->ajax()) {
+            $galleries = $query->paginate(9);
+            return response()->json([
+                'html' => view('gallery-grid-partial', compact('galleries'))->render(),
+                'hasMore' => $galleries->hasMorePages(),
+            ]);
+        }
+
         $galleries = $query->paginate(9);
 
         return view('gallery', compact('galleries', 'categories'));
