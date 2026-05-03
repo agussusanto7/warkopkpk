@@ -8,7 +8,8 @@ use Illuminate\Http\UploadedFile;
 
 class ImageCompressService
 {
-    protected ImageManager $manager;
+    protected $manager;
+    protected $version = 2;
 
     // Konfigurasi kompresi per jenis gambar
     protected array $config = [
@@ -50,7 +51,45 @@ class ImageCompressService
 
     public function __construct()
     {
-        $this->manager = new ImageManager();
+        // Cek versi Intervention Image
+        $version = ImageManager::class;
+
+        // v3.x menggunakan Intervention\Image\ImageManager (dengan driver)
+        // v2.x menggunakan Intervention\Image\ImageManager (tanpa driver)
+        if (class_exists('Intervention\Image\Drivers\Gd\Driver')) {
+            // v3.x
+            $this->version = 3;
+            $driver = new \Intervention\Image\Drivers\Gd\Driver();
+            $this->manager = new ImageManager($driver);
+        } else {
+            // v2.x atau fallback
+            $this->version = 2;
+            $this->manager = new ImageManager(['driver' => 'gd']);
+        }
+    }
+
+    /**
+     * Load image (compatible dengan v2 dan v3)
+     */
+    protected function loadImage($source)
+    {
+        if ($this->version === 3) {
+            return $this->manager->read($source);
+        } else {
+            return $this->manager->make($source);
+        }
+    }
+
+    /**
+     * Encode image (compatible dengan v2 dan v3)
+     */
+    protected function encodeImage($image, string $format = 'png', int $quality = 80)
+    {
+        if ($this->version === 3) {
+            return $image->toPng($quality);
+        } else {
+            return $image->encode($format, $quality);
+        }
     }
 
     /**
@@ -59,7 +98,7 @@ class ImageCompressService
     public function compressAndStore(UploadedFile $file, string $path, ?string $filename = null): string
     {
         $config = $this->getConfigForPath($path);
-        $image = $this->manager->make($file);
+        $image = $this->loadImage($file);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -87,8 +126,10 @@ class ImageCompressService
             $filename = $this->generateFilename($file);
         }
 
+        $encoded = $this->encodeImage($image, 'png', $config['quality']);
+
         $fullPath = $path . '/' . $filename;
-        Storage::disk('public')->put($fullPath, $image->encode('png', $config['quality']));
+        Storage::disk('public')->put($fullPath, $encoded);
 
         return $fullPath;
     }
@@ -106,7 +147,7 @@ class ImageCompressService
 
         // Kompres ulang dengan ukuran thumbnail
         $config = $this->config['thumbnails'];
-        $image = $this->manager->make($file);
+        $image = $this->loadImage($file);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -123,7 +164,7 @@ class ImageCompressService
 
         $image->resize((int) $newWidth, (int) $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
-        Storage::disk('public')->put($thumbPath, $image->encode('png', $config['quality']));
+        Storage::disk('public')->put($thumbPath, $this->encodeImage($image, 'png', $config['quality']));
 
         return [
             'original' => $originalPath,
@@ -146,7 +187,7 @@ class ImageCompressService
         }
 
         $config = $this->config['thumbnails'];
-        $image = $this->manager->make($fullPath);
+        $image = $this->loadImage($fullPath);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -163,7 +204,7 @@ class ImageCompressService
 
         $image->resize((int) $newWidth, (int) $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
-        Storage::disk('public')->put($thumbPath, $image->encode('png', $config['quality']));
+        Storage::disk('public')->put($thumbPath, $this->encodeImage($image, 'png', $config['quality']));
 
         return [
             'original' => $existingPath,
