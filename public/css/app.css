@@ -620,6 +620,31 @@ ul{list-style:none}
   .form-card { padding: 16px; }
   .info-card { padding: 10px; }
   .info-icon { font-size: 1.2rem; }
+
+  /* Fix navbar untuk HP sangat kecil (OPPO A5S 720px width) */
+  .navbar { padding: 12px 0; }
+  .nav-container { padding: 0 12px; }
+  .logo-name { font-size: 0.95rem; }
+  .logo-tagline { display: none; }
+  .nav-toggle { display: block !important; position: relative; z-index: 1001; padding: 4px; }
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 260px;
+    height: 100vh;
+    background: rgba(13, 10, 8, 0.98);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    padding: 80px 20px 30px;
+    transition: right 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-menu.active { right: 0; }
+  .nav-logo { z-index: 1001; position: relative; }
+  .nav-link { padding: 14px 12px; font-size: 0.9rem; }
 }
 
 /* ============================================
