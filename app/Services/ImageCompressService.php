@@ -9,39 +9,30 @@ use Illuminate\Http\UploadedFile;
 class ImageCompressService
 {
     protected $manager;
-    protected $version = 2;
+    protected $version;
 
     // Konfigurasi kompresi per jenis gambar
     protected array $config = [
-        // Menu images - butuh kualitas baik, ukuran medium
         'menu-images' => [
             'quality' => 80,
             'max_width' => 1200,
             'max_height' => 1200,
         ],
-
-        // Site images (hero, header, etc) - kualitas tinggi, ukuran besar
         'site-images' => [
             'quality' => 85,
             'max_width' => 1920,
             'max_height' => 1920,
         ],
-
-        // Gallery cover images - kualitas baik, ukuran medium
         'galleries' => [
             'quality' => 82,
             'max_width' => 1400,
             'max_height' => 1000,
         ],
-
-        // Gallery photos - kualitas medium, ukuran medium
         'galleries/photos' => [
             'quality' => 75,
             'max_width' => 1200,
             'max_height' => 900,
         ],
-
-        // Thumbnails - ukuran kecil, kualitas cukup
         'thumbnails' => [
             'quality' => 70,
             'max_width' => 400,
@@ -51,29 +42,60 @@ class ImageCompressService
 
     public function __construct()
     {
-        // Cek versi Intervention Image
-        $version = ImageManager::class;
+        $this->version = $this->detectVersion();
 
-        // v3.x menggunakan Intervention\Image\ImageManager (dengan driver)
-        // v2.x menggunakan Intervention\Image\ImageManager (tanpa driver)
-        if (class_exists('Intervention\Image\Drivers\Gd\Driver')) {
-            // v3.x
-            $this->version = 3;
+        if ($this->version >= 3) {
+            // Intervention Image v3/v4
             $driver = new \Intervention\Image\Drivers\Gd\Driver();
             $this->manager = new ImageManager($driver);
         } else {
-            // v2.x atau fallback
-            $this->version = 2;
+            // Intervention Image v2
             $this->manager = new ImageManager(['driver' => 'gd']);
         }
     }
 
     /**
-     * Load image (compatible dengan v2 dan v3)
+     * Deteksi versi Intervention Image
+     */
+    protected function detectVersion(): int
+    {
+        // Cek apakah ada driver class (v3+)
+        if (class_exists('Intervention\Image\Drivers\Gd\Driver')) {
+            // Cek apakah method make() ada (v2 style) atau read() (v3 style)
+            $manager = null;
+            try {
+                // Coba v2 syntax dulu
+                $test = @new ImageManager(['driver' => 'gd']);
+                if (method_exists($test, 'make')) {
+                    return 2;
+                }
+            } catch (\Throwable $e) {
+                // v2 gagal, berarti v3+
+            }
+
+            try {
+                // Coba v3 syntax
+                $driver = @new \Intervention\Image\Drivers\Gd\Driver();
+                $test = @new ImageManager($driver);
+                if (method_exists($test, 'read')) {
+                    return 4;
+                }
+                return 3;
+            } catch (\Throwable $e) {
+                return 3;
+            }
+        }
+
+        // Fallback ke v2
+        return 2;
+    }
+
+    /**
+     * Load image - support v2 & v3+
      */
     protected function loadImage($source)
     {
-        if ($this->version === 3) {
+        if ($this->version >= 3) {
             return $this->manager->read($source);
         } else {
             return $this->manager->make($source);
@@ -81,11 +103,11 @@ class ImageCompressService
     }
 
     /**
-     * Encode image (compatible dengan v2 dan v3)
+     * Encode image - support v2 & v3+
      */
     protected function encodeImage($image, string $format = 'png', int $quality = 80)
     {
-        if ($this->version === 3) {
+        if ($this->version >= 3) {
             return $image->toPng($quality);
         } else {
             return $image->encode($format, $quality);
@@ -111,41 +133,35 @@ class ImageCompressService
 
             if ($originalWidth > $config['max_width']) {
                 $newWidth = $config['max_width'];
-                $newHeight = $newWidth / $aspectRatio;
+                $newHeight = (int) ($newWidth / $aspectRatio);
             }
 
             if ($newHeight > $config['max_height']) {
                 $newHeight = $config['max_height'];
-                $newWidth = $newHeight * $aspectRatio;
+                $newWidth = (int) ($newHeight * $aspectRatio);
             }
 
-            $image->resize((int) $newWidth, (int) $newHeight);
+            $image->resize($newWidth, $newHeight);
         }
 
         if (!$filename) {
             $filename = $this->generateFilename($file);
         }
 
-        $encoded = $this->encodeImage($image, 'png', $config['quality']);
-
         $fullPath = $path . '/' . $filename;
-        Storage::disk('public')->put($fullPath, $encoded);
+        Storage::disk('public')->put($fullPath, $this->encodeImage($image, 'png', $config['quality']));
 
         return $fullPath;
     }
 
     /**
-     * Kompres dan generate THUMBNAIL secara bersamaan
-     * Mengembalikan array: ['original' => path, 'thumbnail' => path]
+     * Kompres dan generate THUMBNAIL
      */
     public function compressAndStoreWithThumbnail(UploadedFile $file, string $path): array
     {
         $originalPath = $this->compressAndStore($file, $path);
 
-        // Generate thumbnail filename
         $thumbFilename = $this->generateThumbnailFilename($originalPath);
-
-        // Kompres ulang dengan ukuran thumbnail
         $config = $this->config['thumbnails'];
         $image = $this->loadImage($file);
 
@@ -155,14 +171,14 @@ class ImageCompressService
         $aspectRatio = $originalWidth / $originalHeight;
 
         $newWidth = $config['max_width'];
-        $newHeight = $config['max_width'] / $aspectRatio;
+        $newHeight = (int) ($config['max_width'] / $aspectRatio);
 
         if ($newHeight > $config['max_height']) {
             $newHeight = $config['max_height'];
-            $newWidth = $newHeight * $aspectRatio;
+            $newWidth = (int) ($newHeight * $aspectRatio);
         }
 
-        $image->resize((int) $newWidth, (int) $newHeight);
+        $image->resize($newWidth, $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
         Storage::disk('public')->put($thumbPath, $this->encodeImage($image, 'png', $config['quality']));
 
@@ -174,13 +190,11 @@ class ImageCompressService
 
     /**
      * Generate thumbnail dari file yang SUDAH ADA di storage
-     * (untuk proses batch generate thumbnails dari gallery lama)
      */
     public function compressAndStoreWithThumbnailFromPath(string $existingPath): array
     {
         $thumbFilename = $this->generateThumbnailFilename($existingPath);
 
-        // Baca file yang sudah ada
         $fullPath = storage_path('app/public/' . $existingPath);
         if (!file_exists($fullPath)) {
             throw new \Exception("File tidak ditemukan: $fullPath");
@@ -195,14 +209,14 @@ class ImageCompressService
         $aspectRatio = $originalWidth / $originalHeight;
 
         $newWidth = $config['max_width'];
-        $newHeight = $config['max_width'] / $aspectRatio;
+        $newHeight = (int) ($config['max_width'] / $aspectRatio);
 
         if ($newHeight > $config['max_height']) {
             $newHeight = $config['max_height'];
-            $newWidth = $newHeight * $aspectRatio;
+            $newWidth = (int) ($newHeight * $aspectRatio);
         }
 
-        $image->resize((int) $newWidth, (int) $newHeight);
+        $image->resize($newWidth, $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
         Storage::disk('public')->put($thumbPath, $this->encodeImage($image, 'png', $config['quality']));
 
@@ -213,7 +227,7 @@ class ImageCompressService
     }
 
     /**
-     * Kompres multiple gambar (untuk gallery photos)
+     * Kompres multiple gambar
      */
     public function compressAndStoreMultiple(array $files, string $path): array
     {
@@ -255,9 +269,8 @@ class ImageCompressService
      */
     protected function generateFilename(UploadedFile $file): string
     {
-        $extension = 'png';
         $hash = md5($file->getClientOriginalName() . time() . rand(1000, 9999));
-        return $hash . '.' . $extension;
+        return $hash . '.png';
     }
 
     /**
@@ -267,19 +280,5 @@ class ImageCompressService
     {
         $info = pathinfo($originalPath);
         return $info['filename'] . '_thumb.' . ($info['extension'] ?? 'png');
-    }
-
-    /**
-     * Format bytes ke readable string
-     */
-    protected function formatBytes(int $bytes): string
-    {
-        if ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
-        } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
-        } else {
-            return $bytes . ' bytes';
-        }
     }
 }
