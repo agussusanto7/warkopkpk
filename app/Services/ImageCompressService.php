@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 
@@ -51,7 +50,7 @@ class ImageCompressService
 
     public function __construct()
     {
-        $this->manager = new ImageManager(new Driver());
+        $this->manager = new ImageManager();
     }
 
     /**
@@ -60,7 +59,7 @@ class ImageCompressService
     public function compressAndStore(UploadedFile $file, string $path, ?string $filename = null): string
     {
         $config = $this->getConfigForPath($path);
-        $image = $this->manager->read($file);
+        $image = $this->manager->make($file);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -81,17 +80,15 @@ class ImageCompressService
                 $newWidth = $newHeight * $aspectRatio;
             }
 
-            $image = $image->resize((int) $newWidth, (int) $newHeight);
+            $image->resize((int) $newWidth, (int) $newHeight);
         }
 
         if (!$filename) {
             $filename = $this->generateFilename($file);
         }
 
-        $encoded = $image->toPng($config['quality']);
-
         $fullPath = $path . '/' . $filename;
-        Storage::disk('public')->put($fullPath, $encoded);
+        Storage::disk('public')->put($fullPath, $image->encode('png', $config['quality']));
 
         return $fullPath;
     }
@@ -109,7 +106,7 @@ class ImageCompressService
 
         // Kompres ulang dengan ukuran thumbnail
         $config = $this->config['thumbnails'];
-        $image = $this->manager->read($file);
+        $image = $this->manager->make($file);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -124,11 +121,9 @@ class ImageCompressService
             $newWidth = $newHeight * $aspectRatio;
         }
 
-        $image = $image->resize((int) $newWidth, (int) $newHeight);
-        $encoded = $image->toPng($config['quality']);
-
+        $image->resize((int) $newWidth, (int) $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
-        Storage::disk('public')->put($thumbPath, $encoded);
+        Storage::disk('public')->put($thumbPath, $image->encode('png', $config['quality']));
 
         return [
             'original' => $originalPath,
@@ -151,7 +146,7 @@ class ImageCompressService
         }
 
         $config = $this->config['thumbnails'];
-        $image = $this->manager->read($fullPath);
+        $image = $this->manager->make($fullPath);
 
         $originalWidth = $image->width();
         $originalHeight = $image->height();
@@ -166,11 +161,9 @@ class ImageCompressService
             $newWidth = $newHeight * $aspectRatio;
         }
 
-        $image = $image->resize((int) $newWidth, (int) $newHeight);
-        $encoded = $image->toPng($config['quality']);
-
+        $image->resize((int) $newWidth, (int) $newHeight);
         $thumbPath = 'thumbnails/' . $thumbFilename;
-        Storage::disk('public')->put($thumbPath, $encoded);
+        Storage::disk('public')->put($thumbPath, $image->encode('png', $config['quality']));
 
         return [
             'original' => $existingPath,
