@@ -743,20 +743,15 @@ function loadGallery(category = null, page = null) {
     grid.style.opacity = '0.5';
     grid.style.pointerEvents = 'none';
 
-    // Build URL
-    let url = '/gallery';
+    // Build URL - use API route for AJAX
+    let url = '/api/gallery';
     let params = [];
     if (category) params.push('category=' + category);
     if (page) params.push('page=' + page);
     if (params.length > 0) url += '?' + params.join('&');
 
     // AJAX request
-    fetch(url, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-        }
-    })
+    fetch(url)
     .then(response => response.json())
     .then(data => {
         // Update grid with new content

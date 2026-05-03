@@ -30,6 +30,9 @@ Route::get('/gallery-img/{path}', function ($path) {
     abort(404);
 })->where('path', '.*');
 
+// API route untuk gallery (AJAX filtering tanpa page refresh)
+Route::get('/api/gallery', [GalleryController::class, 'apiIndex'])->name('gallery.api');
+
 // Serve menu images and site images via PHP (tanpa symlink)
 Route::get('/img/{path}', function ($path) {
     // Sanitize path - prevent directory traversal

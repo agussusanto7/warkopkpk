@@ -32,6 +32,26 @@ class GalleryController extends Controller
         return view('gallery', compact('galleries', 'categories'));
     }
 
+    /**
+     * API endpoint untuk AJAX gallery filtering
+     */
+    public function apiIndex(Request $request)
+    {
+        $query = Gallery::with('category')->published()->sorted();
+
+        if ($request->has('category') && $request->category !== 'all') {
+            $query->byCategory($request->category);
+        }
+
+        $galleries = $query->paginate(9);
+
+        return response()->json([
+            'html' => view('gallery-grid-partial', compact('galleries'))->render(),
+            'hasMore' => $galleries->hasMorePages(),
+            'total' => $galleries->total(),
+        ]);
+    }
+
     public function show(Gallery $gallery)
     {
         abort_unless($gallery->is_published, 404);
