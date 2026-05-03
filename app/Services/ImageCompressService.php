@@ -137,6 +137,48 @@ class ImageCompressService
     }
 
     /**
+     * Generate thumbnail dari file yang SUDAH ADA di storage
+     * (untuk proses batch generate thumbnails dari gallery lama)
+     */
+    public function compressAndStoreWithThumbnailFromPath(string $existingPath): array
+    {
+        $thumbFilename = $this->generateThumbnailFilename($existingPath);
+
+        // Baca file yang sudah ada
+        $fullPath = storage_path('app/public/' . $existingPath);
+        if (!file_exists($fullPath)) {
+            throw new \Exception("File tidak ditemukan: $fullPath");
+        }
+
+        $config = $this->config['thumbnails'];
+        $image = $this->manager->read($fullPath);
+
+        $originalWidth = $image->width();
+        $originalHeight = $image->height();
+
+        $aspectRatio = $originalWidth / $originalHeight;
+
+        $newWidth = $config['max_width'];
+        $newHeight = $config['max_width'] / $aspectRatio;
+
+        if ($newHeight > $config['max_height']) {
+            $newHeight = $config['max_height'];
+            $newWidth = $newHeight * $aspectRatio;
+        }
+
+        $image = $image->resize((int) $newWidth, (int) $newHeight);
+        $encoded = $image->toPng($config['quality']);
+
+        $thumbPath = 'thumbnails/' . $thumbFilename;
+        Storage::disk('public')->put($thumbPath, $encoded);
+
+        return [
+            'original' => $existingPath,
+            'thumbnail' => $thumbPath,
+        ];
+    }
+
+    /**
      * Kompres multiple gambar (untuk gallery photos)
      */
     public function compressAndStoreMultiple(array $files, string $path): array

@@ -126,7 +126,13 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform .5s ease;
+    transition: transform .5s ease, opacity .4s ease;
+    opacity: 0; /* Start with invisible */
+}
+
+/* Fade in when loaded */
+.gallery-card-image img.loaded {
+    opacity: 1;
 }
 
 .gallery-card:hover .gallery-card-image img {
@@ -476,7 +482,10 @@
                         @if($gridImage)
                             <img src="{{ $gridImage }}"
                                  alt="{{ $gallery->title }}"
-                                 loading="lazy">
+                                 loading="lazy"
+                                 class="lazy-thumb"
+                                 onload="this.classList.add('loaded')"
+                                 onerror="this.classList.add('loaded')">
                         @else
                             <div class="no-image">📷</div>
                         @endif
