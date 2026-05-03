@@ -456,16 +456,25 @@
                     if (empty($photoUrls) && $gallery->cover_image_url) {
                         $photoUrls = [$gallery->cover_image_url];
                     }
+                    $thumbnailUrls = $gallery->thumbnail_urls;
+                    // Fallback thumbnail to original if empty
+                    if (empty($thumbnailUrls) && $gallery->cover_thumbnail_url) {
+                        $thumbnailUrls = [$gallery->cover_thumbnail_url];
+                    }
+                    // Grid pakai thumbnail, lightbox pakai foto asli
+                    $gridImage = !empty($thumbnailUrls) ? $thumbnailUrls[0] : ($gallery->cover_thumbnail_url ?? $gallery->cover_image_url);
                     $encodedPhotos = json_encode($photoUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                    $encodedThumbs = json_encode($thumbnailUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
                 @endphp
                 <div class="gallery-card"
                      data-photos="{{ $encodedPhotos }}"
                      data-cover="{{ $gallery->cover_image_url ?? '' }}"
                      data-title="{{ addslashes($gallery->title) }}"
+                     data-thumbnails="{{ $encodedThumbs }}"
                      onclick="openLightbox(this)">
                     <div class="gallery-card-image">
-                        @if($gallery->cover_image_url)
-                            <img src="{{ $gallery->cover_image_url }}"
+                        @if($gridImage)
+                            <img src="{{ $gridImage }}"
                                  alt="{{ $gallery->title }}"
                                  loading="lazy">
                         @else

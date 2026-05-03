@@ -13,7 +13,9 @@ class Gallery extends Model
         'description',
         'event_date',
         'cover_image',
+        'cover_thumbnail',
         'photos',
+        'thumbnails',
         'is_published',
         'sort_order',
     ];
@@ -21,6 +23,7 @@ class Gallery extends Model
     protected $casts = [
         'event_date' => 'date',
         'photos' => 'array',
+        'thumbnails' => 'array',
         'is_published' => 'boolean',
         'sort_order' => 'integer',
     ];
@@ -53,7 +56,18 @@ class Gallery extends Model
             return null;
         }
         $path = ltrim($this->cover_image, '/');
-        // Use PHP route to serve images (works without storage symlink)
+        return url('/gallery-img/' . $path);
+    }
+
+    /**
+     * Get thumbnail URL for cover image (untuk grid/list view)
+     */
+    public function getCoverThumbnailUrlAttribute(): ?string
+    {
+        if (!$this->cover_thumbnail) {
+            return $this->cover_image_url; // Fallback ke cover_image_url
+        }
+        $path = ltrim($this->cover_thumbnail, '/');
         return url('/gallery-img/' . $path);
     }
 
@@ -73,6 +87,27 @@ class Gallery extends Model
             $path = ltrim($photo, '/');
             return url('/gallery-img/' . $path);
         }, $photos)));
+    }
+
+    /**
+     * Get thumbnail URLs for photos (untuk grid/list view)
+     */
+    public function getThumbnailUrlsAttribute(): array
+    {
+        if (!$this->thumbnails) {
+            return $this->photo_urls; // Fallback ke photo_urls
+        }
+        $thumbs = (array) $this->thumbnails;
+        if (empty($thumbs)) {
+            return $this->photo_urls;
+        }
+        return array_values(array_filter(array_map(function ($thumb) {
+            if (!$thumb || !is_string($thumb)) {
+                return null;
+            }
+            $path = ltrim($thumb, '/');
+            return url('/gallery-img/' . $path);
+        }, $thumbs)));
     }
 
     public function getFormattedDateAttribute(): string

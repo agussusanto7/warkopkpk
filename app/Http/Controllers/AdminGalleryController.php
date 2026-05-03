@@ -56,26 +56,32 @@ class AdminGalleryController extends Controller
             'sort_order' => 0,
         ];
 
-        // Cover image - kompres otomatis
+        // Cover image - kompres + generate thumbnail
         $file = $request->file('cover_image');
         if ($file && $file->getSize() > 0) {
             $imageService = new ImageCompressService();
-            $data['cover_image'] = $imageService->compressAndStore($file, 'galleries');
+            $result = $imageService->compressAndStoreWithThumbnail($file, 'galleries');
+            $data['cover_image'] = $result['original'];
+            $data['cover_thumbnail'] = $result['thumbnail'];
         }
 
-        // Photos - kompres otomatis
+        // Photos - kompres + generate thumbnail
         $filePhotos = $request->file('photos');
         if ($filePhotos) {
             $allFiles = is_array($filePhotos) ? $filePhotos : [$filePhotos];
             $imageService = new ImageCompressService();
             $paths = [];
+            $thumbs = [];
             foreach ($allFiles as $p) {
                 if ($p && $p->getSize() > 0) {
-                    $paths[] = $imageService->compressAndStore($p, 'galleries/photos');
+                    $result = $imageService->compressAndStoreWithThumbnail($p, 'galleries/photos');
+                    $paths[] = $result['original'];
+                    $thumbs[] = $result['thumbnail'];
                 }
             }
             if (!empty($paths)) {
                 $data['photos'] = $paths;
+                $data['thumbnails'] = $thumbs;
             }
         }
 
@@ -128,12 +134,17 @@ class AdminGalleryController extends Controller
         // Cover image — replace if new file uploaded
         $file = $request->file('cover_image');
         if ($file && $file->getSize() > 0) {
-            // Delete old cover
+            // Delete old cover & thumbnail
             if ($gallery->cover_image) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($gallery->cover_image);
             }
+            if ($gallery->cover_thumbnail) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($gallery->cover_thumbnail);
+            }
             $imageService = new ImageCompressService();
-            $data['cover_image'] = $imageService->compressAndStore($file, 'galleries');
+            $result = $imageService->compressAndStoreWithThumbnail($file, 'galleries');
+            $data['cover_image'] = $result['original'];
+            $data['cover_thumbnail'] = $result['thumbnail'];
         }
 
         // Photos — add new OR replace all
@@ -143,26 +154,34 @@ class AdminGalleryController extends Controller
         if ($filePhotos) {
             $allFiles = is_array($filePhotos) ? $filePhotos : [$filePhotos];
             $newPaths = [];
+            $newThumbs = [];
             $imageService = new ImageCompressService();
 
             foreach ($allFiles as $p) {
                 if ($p && $p->getSize() > 0) {
-                    $newPaths[] = $imageService->compressAndStore($p, 'galleries/photos');
+                    $result = $imageService->compressAndStoreWithThumbnail($p, 'galleries/photos');
+                    $newPaths[] = $result['original'];
+                    $newThumbs[] = $result['thumbnail'];
                 }
             }
 
             if (!empty($newPaths)) {
                 if ($replaceMode) {
-                    // Replace: delete old photos first
+                    // Replace: delete old photos & thumbnails first
                     foreach ((array) $gallery->photos as $old) {
+                        if ($old) \Illuminate\Support\Facades\Storage::disk('public')->delete($old);
+                    }
+                    foreach ((array) $gallery->thumbnails as $old) {
                         if ($old) \Illuminate\Support\Facades\Storage::disk('public')->delete($old);
                     }
                 }
                 // Merge or replace
                 if ($replaceMode) {
                     $data['photos'] = $newPaths;
+                    $data['thumbnails'] = $newThumbs;
                 } else {
                     $data['photos'] = array_merge((array) $gallery->photos, $newPaths);
+                    $data['thumbnails'] = array_merge((array) $gallery->thumbnails, $newThumbs);
                 }
             }
         }
@@ -179,8 +198,14 @@ class AdminGalleryController extends Controller
         if ($gallery->cover_image) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($gallery->cover_image);
         }
+        if ($gallery->cover_thumbnail) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($gallery->cover_thumbnail);
+        }
         foreach ((array) $gallery->photos as $photo) {
             if ($photo) \Illuminate\Support\Facades\Storage::disk('public')->delete($photo);
+        }
+        foreach ((array) $gallery->thumbnails as $thumb) {
+            if ($thumb) \Illuminate\Support\Facades\Storage::disk('public')->delete($thumb);
         }
         $gallery->delete();
         return redirect()->route('admin.gallery.index')
@@ -198,13 +223,27 @@ class AdminGalleryController extends Controller
     {
         $photoPath = $request->input('photo_path');
         $photos = (array) $gallery->photos;
-        $photos = array_values(array_filter($photos, fn($p) => $p !== $photoPath));
+        $thumbs = (array) $gallery->thumbnails;
+
+        // Find index of photo to remove
+        $photoIndex = array_search($photoPath, $photos);
 
         if ($photoPath) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($photoPath);
+            // Also delete corresponding thumbnail
+            if ($photoIndex !== false && isset($thumbs[$photoIndex])) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($thumbs[$photoIndex]);
+                unset($thumbs[$photoIndex]);
+                $thumbs = array_values($thumbs);
+            }
         }
 
-        $gallery->update(['photos' => $photos]);
+        $photos = array_values(array_filter($photos, fn($p) => $p !== $photoPath));
+
+        $gallery->update([
+            'photos' => $photos,
+            'thumbnails' => $thumbs
+        ]);
 
         return redirect()->back()->with('success', 'Foto berhasil dihapus!');
     }

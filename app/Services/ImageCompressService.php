@@ -40,6 +40,13 @@ class ImageCompressService
             'max_width' => 1200,
             'max_height' => 900,
         ],
+
+        // Thumbnails - ukuran kecil, kualitas cukup
+        'thumbnails' => [
+            'quality' => 70,
+            'max_width' => 400,
+            'max_height' => 300,
+        ],
     ];
 
     public function __construct()
@@ -49,25 +56,15 @@ class ImageCompressService
 
     /**
      * Kompres dan simpan gambar
-     *
-     * @param UploadedFile $file File gambar yang di-upload
-     * @param string $path Path tujuan penyimpanan (misal: 'menu-images', 'site-images', 'galleries', 'galleries/photos')
-     * @param string|null $filename Nama file custom (optional, default: hash)
-     * @return string Path file yang tersimpan
      */
     public function compressAndStore(UploadedFile $file, string $path, ?string $filename = null): string
     {
-        // Dapatkan konfigurasi berdasarkan path
         $config = $this->getConfigForPath($path);
-
-        // Baca gambar
         $image = $this->manager->read($file);
 
-        // Dapatkan dimensi asli
         $originalWidth = $image->width();
         $originalHeight = $image->height();
 
-        // Hitung dimensi baru jika perlu (resize dengan aspect ratio)
         $newWidth = $originalWidth;
         $newHeight = $originalHeight;
 
@@ -84,19 +81,15 @@ class ImageCompressService
                 $newWidth = $newHeight * $aspectRatio;
             }
 
-            // Resize gambar
             $image = $image->resize((int) $newWidth, (int) $newHeight);
         }
 
-        // Generate nama file jika tidak disediakan
         if (!$filename) {
             $filename = $this->generateFilename($file);
         }
 
-        // Encode dengan kompresi
-        $encoded = $image->toPng($config['quality']); // Selalu gunakan PNG untuk kualitas terbaik
+        $encoded = $image->toPng($config['quality']);
 
-        // Simpan ke storage
         $fullPath = $path . '/' . $filename;
         Storage::disk('public')->put($fullPath, $encoded);
 
@@ -104,11 +97,47 @@ class ImageCompressService
     }
 
     /**
-     * Kompres multiple gambar (untuk gallery photos, dll)
-     *
-     * @param array $files Array dari UploadedFile
-     * @param string $path Path tujuan
-     * @return array Array dari path file yang tersimpan
+     * Kompres dan generate THUMBNAIL secara bersamaan
+     * Mengembalikan array: ['original' => path, 'thumbnail' => path]
+     */
+    public function compressAndStoreWithThumbnail(UploadedFile $file, string $path): array
+    {
+        $originalPath = $this->compressAndStore($file, $path);
+
+        // Generate thumbnail filename
+        $thumbFilename = $this->generateThumbnailFilename($originalPath);
+
+        // Kompres ulang dengan ukuran thumbnail
+        $config = $this->config['thumbnails'];
+        $image = $this->manager->read($file);
+
+        $originalWidth = $image->width();
+        $originalHeight = $image->height();
+
+        $aspectRatio = $originalWidth / $originalHeight;
+
+        $newWidth = $config['max_width'];
+        $newHeight = $config['max_width'] / $aspectRatio;
+
+        if ($newHeight > $config['max_height']) {
+            $newHeight = $config['max_height'];
+            $newWidth = $newHeight * $aspectRatio;
+        }
+
+        $image = $image->resize((int) $newWidth, (int) $newHeight);
+        $encoded = $image->toPng($config['quality']);
+
+        $thumbPath = 'thumbnails/' . $thumbFilename;
+        Storage::disk('public')->put($thumbPath, $encoded);
+
+        return [
+            'original' => $originalPath,
+            'thumbnail' => $thumbPath,
+        ];
+    }
+
+    /**
+     * Kompres multiple gambar (untuk gallery photos)
      */
     public function compressAndStoreMultiple(array $files, string $path): array
     {
@@ -128,19 +157,16 @@ class ImageCompressService
      */
     protected function getConfigForPath(string $path): array
     {
-        // Cek exact match dulu
         if (isset($this->config[$path])) {
             return $this->config[$path];
         }
 
-        // Cek prefix match (untuk nested paths)
         foreach ($this->config as $key => $config) {
             if (str_starts_with($path, $key)) {
                 return $config;
             }
         }
 
-        // Default config jika tidak ditemukan
         return [
             'quality' => 80,
             'max_width' => 1200,
@@ -149,61 +175,27 @@ class ImageCompressService
     }
 
     /**
-     * Generate nama file unik dengan hash
+     * Generate nama file unik
      */
     protected function generateFilename(UploadedFile $file): string
     {
-        $extension = 'png'; // Selalu gunakan PNG untuk kualitas terbaik
+        $extension = 'png';
         $hash = md5($file->getClientOriginalName() . time() . rand(1000, 9999));
         return $hash . '.' . $extension;
     }
 
     /**
-     * Dapatkan info ukuran file sebelum dan sesudah kompresi (untuk logging/debug)
+     * Generate nama file untuk thumbnail
      */
-    public function getSizeComparison(UploadedFile $file, string $path): array
+    protected function generateThumbnailFilename(string $originalPath): string
     {
-        $originalSize = $file->getSize();
-
-        // Kompres sementara untuk ukuran
-        $config = $this->getConfigForPath($path);
-        $image = $this->manager->read($file);
-
-        $originalWidth = $image->width();
-        $originalHeight = $image->height();
-
-        $newWidth = $originalWidth;
-        $newHeight = $originalHeight;
-
-        if ($originalWidth > $config['max_width'] || $originalHeight > $config['max_height']) {
-            $aspectRatio = $originalWidth / $originalHeight;
-
-            if ($originalWidth > $config['max_width']) {
-                $newWidth = $config['max_width'];
-                $newHeight = $newWidth / $aspectRatio;
-            }
-
-            if ($newHeight > $config['max_height']) {
-                $newHeight = $config['max_height'];
-                $newWidth = $newHeight * $aspectRatio;
-            }
-
-            $image = $image->resize((int) $newWidth, (int) $newHeight);
-        }
-
-        $encoded = $image->toPng($config['quality']);
-        $compressedSize = strlen($encoded);
-
-        return [
-            'original' => $this->formatBytes($originalSize),
-            'compressed' => $this->formatBytes($compressedSize),
-            'saved' => $this->formatBytes($originalSize - $compressedSize),
-            'saved_percent' => round((($originalSize - $compressedSize) / $originalSize) * 100, 1),
-            'original_dimensions' => $originalWidth . 'x' . $originalHeight,
-            'new_dimensions' => (int) $newWidth . 'x' . (int) $newHeight,
-        ];
+        $info = pathinfo($originalPath);
+        return $info['filename'] . '_thumb.' . ($info['extension'] ?? 'png');
     }
 
+    /**
+     * Format bytes ke readable string
+     */
     protected function formatBytes(int $bytes): string
     {
         if ($bytes >= 1048576) {
