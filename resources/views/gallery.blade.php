@@ -771,11 +771,7 @@ function loadGallery(category = null, page = null) {
             img.addEventListener('error', () => img.classList.add('loaded'));
         });
 
-        // Scroll to gallery filters (not too far down)
-        const filters = document.getElementById('galleryFilters');
-        if (filters) {
-            filters.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        // Don't scroll - user stays where they are (filters visible)
 
         isLoading = false;
     })
