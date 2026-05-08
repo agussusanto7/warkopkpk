@@ -32,13 +32,18 @@ ul{list-style:none}
   position:fixed;top:0;left:0;width:100%;z-index:1000;
   padding:0;
   transition:all .25s ease;
+  background:rgba(13,10,8,.88);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(200,149,108,.06);
 }
 .navbar.scrolled{
-  background:rgba(13,10,8,.92);
+  background:rgba(13,10,8,.95);
   backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid rgba(200,149,108,.08);
 }
+.nav-container{z-index:1001}
 .nav-container{
   max-width:1200px;margin:0 auto;padding:0 24px;
   display:flex;align-items:center;justify-content:space-between;
@@ -83,14 +88,14 @@ ul{list-style:none}
 
 /* Mobile Toggle */
 .nav-toggle{
-  display:none;background:transparent;border:none;cursor:pointer;
+  display:none;background:rgba(13,10,8,.7);border:none;cursor:pointer;
   padding:10px;width:44px;height:44px;
   align-items:center;justify-content:center;
   border-radius:8px;transition:all .2s ease;flex-shrink:0;
   position:relative;z-index:1001;
 }
-.nav-toggle:hover{background:rgba(200,149,108,.1)}
-.nav-toggle:active{background:rgba(200,149,108,.15)}
+.nav-toggle:hover{background:rgba(13,10,8,.85)}
+.nav-toggle:active{background:rgba(13,10,8,.9)}
 
 /* Hamburger Icon */
 .hamburger{
