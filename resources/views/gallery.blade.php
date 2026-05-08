@@ -5,12 +5,12 @@
 @section('extra_css')
 <style>
 /* ============================================
-   GALLERY PAGE - Modern Light Theme
+   GALLERY PAGE - Dark Theme Match
    ============================================ */
 .gallery-page {
     padding: 120px 0 80px;
     min-height: 100vh;
-    background: var(--bg-primary);
+    background: var(--bg-dark);
 }
 
 .gallery-header {
@@ -19,93 +19,112 @@
     padding: 0 20px;
 }
 
+.gallery-header .section-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(200,149,108,.1);
+    border: 1px solid rgba(200,149,108,.2);
+    border-radius: 50px;
+    font-size: .8rem;
+    color: var(--gold);
+    margin-bottom: 16px;
+}
+
 .gallery-header h1 {
     font-family: var(--font-heading);
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
-    color: var(--brown-900);
-    margin-bottom: 14px;
+    color: var(--cream);
+    margin-bottom: 15px;
 }
 
 .gallery-header p {
     font-size: 1rem;
     color: var(--text-secondary);
-    max-width: 580px;
+    max-width: 600px;
     margin: 0 auto;
-    line-height: 1.7;
 }
 
-/* Gallery Filter Tabs */
+/* Filter Tabs */
 .gallery-filters {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 40px;
-    padding: 0 4px;
+    gap: 10px;
+    margin-bottom: 50px;
+    padding: 0 20px;
 }
 
-/* Filter Buttons */
-.gallery-filters .filter-btn,
-.gallery-page .filter-btn {
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 18px;
-    border: 1.5px solid var(--border);
-    background: transparent;
+    border-radius: 50px;
+    background: var(--bg-card);
     color: var(--text-secondary);
-    border-radius: var(--radius-full);
-    cursor: pointer;
     font-size: .85rem;
     font-weight: 500;
-    font-family: var(--font-body);
+    border: 1px solid rgba(200,149,108,.15);
+    cursor: pointer;
     transition: var(--transition);
+    text-decoration: none;
 }
-.gallery-filters .filter-btn:hover,
-.gallery-page .filter-btn:hover {
+
+.filter-btn:hover {
     border-color: var(--gold);
-    color: var(--gold);
+    color: var(--cream);
+    background: rgba(200,149,108,.08);
+    transform: translateY(-2px);
 }
-.gallery-filters .filter-btn.active,
-.gallery-page .filter-btn.active {
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: #fff;
+
+.filter-btn.active {
+    background: var(--gradient);
+    color: var(--brown-900);
     border-color: transparent;
     font-weight: 600;
-    box-shadow: 0 2px 10px rgba(184,137,46,.25);
 }
 
 /* Gallery Container */
 .gallery-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 20px;
 }
 
 /* Gallery Grid */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+@media (min-width: 640px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
 }
 
 /* Gallery Card */
 .gallery-card {
     background: var(--bg-card);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid var(--border-light);
-    transition: var(--transition);
+    border: 1px solid rgba(200,149,108,.08);
+    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    box-shadow: var(--shadow-sm);
 }
 
 .gallery-card:hover {
     transform: translateY(-6px);
-    border-color: rgba(184,137,46,.2);
+    border-color: rgba(200,149,108,.25);
     box-shadow: var(--shadow-lg);
 }
 
+/* Active/pressed state for touch devices */
 .gallery-card:active {
     transform: scale(0.98);
 }
@@ -114,7 +133,7 @@
     position: relative;
     aspect-ratio: 4/3;
     overflow: hidden;
-    background: var(--brown-100);
+    background: var(--brown-900);
 }
 
 .gallery-card-image img {
@@ -122,15 +141,16 @@
     height: 100%;
     object-fit: cover;
     transition: transform .5s ease, opacity .4s ease;
-    opacity: 0;
+    opacity: 0; /* Start with invisible */
 }
 
+/* Fade in when loaded */
 .gallery-card-image img.loaded {
     opacity: 1;
 }
 
 .gallery-card:hover .gallery-card-image img {
-    transform: scale(1.06);
+    transform: scale(1.08);
 }
 
 .gallery-card-image .no-image {
@@ -139,8 +159,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.5rem;
-    opacity: 0.15;
+    font-size: 3rem;
+    opacity: 0.2;
 }
 
 .gallery-card-category {
@@ -148,38 +168,35 @@
     top: 12px;
     left: 12px;
     padding: 5px 12px;
-    border-radius: var(--radius-full);
-    font-size: .72rem;
+    border-radius: 50px;
+    font-size: .75rem;
     font-weight: 600;
-    color: #fff;
+    color: white;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.15);
 }
 
 .gallery-card-photo-count {
     position: absolute;
     bottom: 12px;
     right: 12px;
-    padding: 4px 10px;
-    border-radius: var(--radius-full);
-    font-size: .72rem;
-    color: #fff;
-    background: rgba(0,0,0,.55);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 50px;
+    font-size: .75rem;
+    color: white;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(10px);
 }
 
 .gallery-card-content {
-    padding: 18px 20px;
+    padding: 20px;
 }
 
 .gallery-card-title {
     font-family: var(--font-heading);
-    font-size: 1.1rem;
-    color: var(--brown-800);
-    margin-bottom: 6px;
+    font-size: 1.15rem;
+    color: var(--cream);
+    margin-bottom: 8px;
     line-height: 1.3;
 }
 
@@ -187,15 +204,14 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: .8rem;
+    font-size: .82rem;
     color: var(--gold);
-    margin-bottom: 8px;
-    font-weight: 500;
+    margin-bottom: 10px;
 }
 
 .gallery-card-desc {
-    font-size: .85rem;
-    color: var(--text-muted);
+    font-size: .88rem;
+    color: var(--text-secondary);
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -211,21 +227,20 @@
 }
 
 .gallery-empty-icon {
-    font-size: 3.5rem;
-    margin-bottom: 18px;
-    opacity: 0.2;
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
 }
 
 .gallery-empty h3 {
     font-family: var(--font-heading);
-    font-size: 1.4rem;
-    color: var(--brown-800);
+    font-size: 1.5rem;
+    color: var(--cream);
     margin-bottom: 10px;
 }
 
 .gallery-empty p {
-    color: var(--text-muted);
-    font-size: .9rem;
+    color: var(--text-secondary);
 }
 
 /* Lightbox */
@@ -233,8 +248,8 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.95);
-    z-index: 2000;
+    background: rgba(0,0,0,.97);
+    z-index: 1000;
     align-items: center;
     justify-content: center;
 }
@@ -261,6 +276,7 @@
     transition: opacity .3s ease;
 }
 
+/* Image loading state */
 .lightbox-content img.loading {
     opacity: 0.3;
 }
@@ -273,7 +289,7 @@
     position: absolute;
     top: 15px;
     right: 25px;
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: rgba(255,255,255,.7);
     cursor: pointer;
     z-index: 1001;
@@ -288,7 +304,6 @@
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    line-height: 1;
 }
 
 .lightbox-close:hover {
@@ -304,8 +319,8 @@
     background: rgba(255,255,255,.1);
     border: 1px solid rgba(255,255,255,.15);
     color: white;
-    font-size: 1.4rem;
-    padding: 16px 14px;
+    font-size: 1.5rem;
+    padding: 16px 12px;
     cursor: pointer;
     border-radius: 12px;
     transition: var(--transition);
@@ -313,11 +328,10 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
-    line-height: 1;
 }
 
 .lightbox-nav:hover {
-    background: rgba(184,137,46,.35);
+    background: rgba(200,149,108,.3);
     border-color: var(--gold);
 }
 
@@ -343,8 +357,8 @@
 }
 
 .lightbox-counter {
-    font-size: .82rem;
-    color: var(--gold-light);
+    font-size: .85rem;
+    color: var(--gold);
 }
 
 /* Pagination */
@@ -374,25 +388,25 @@
     min-width: 42px;
     height: 42px;
     padding: 0 12px;
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     background: var(--bg-card);
     color: var(--text-secondary);
     font-weight: 500;
     text-decoration: none;
     transition: var(--transition);
-    border: 1px solid var(--border-light);
+    border: 1px solid rgba(200,149,108,.12);
     font-size: .9rem;
 }
 
 .gallery-pagination .page-link:hover {
-    background: rgba(184,137,46,.1);
-    color: var(--brown-800);
-    border-color: rgba(184,137,46,.2);
+    background: rgba(200,149,108,.15);
+    color: var(--cream);
+    border-color: var(--gold);
 }
 
 .gallery-pagination .page-item.active .page-link {
-    background: linear-gradient(135deg,var(--gold),var(--gold-light));
-    color: #fff;
+    background: var(--gradient);
+    color: var(--brown-900);
     border-color: transparent;
     font-weight: 700;
 }
@@ -406,9 +420,19 @@
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-    .gallery-page { padding: 100px 0 60px; }
-    .gallery-header h1 { font-size: 1.8rem; }
-    .gallery-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .gallery-page {
+        padding: 100px 0 60px;
+    }
+
+    .gallery-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
     .gallery-filters {
         gap: 8px;
         justify-content: flex-start;
@@ -416,20 +440,24 @@
         flex-wrap: nowrap;
         padding-bottom: 10px;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
     }
-    .gallery-filters::-webkit-scrollbar { display: none; }
-    .filter-btn { flex-shrink: 0; padding: 7px 14px; font-size: .82rem; }
+
+    .filter-btn {
+        flex-shrink: 0;
+        padding: 7px 14px;
+        font-size: .82rem;
+    }
+
     .lightbox-prev { left: 8px; }
     .lightbox-next { right: 8px; }
     .lightbox-nav { padding: 12px 8px; font-size: 1.1rem; }
 }
 
 @media (max-width: 480px) {
-    .gallery-grid { grid-template-columns: 1fr; gap: 14px; }
-    .gallery-card-content { padding: 14px 16px; }
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
 }
-.gallery-filters .filter-btn { flex-shrink: 0 }
 </style>
 @endsection
 
@@ -437,28 +465,21 @@
 <section class="gallery-page">
     <div class="gallery-container">
         <div class="gallery-header">
-            <span class="section-badge">Gallery</span>
-            <h1>Momen Seru di <span class="text-gradient">Warkop KPK</span></h1>
+            <span class="section-badge">📷 Gallery</span>
+            <h1>Momen Seru di Warkop KPK</h1>
             <p>Kumpulan dokumentasi momen-momen kebersamaan — dari bukber, nobar, live music, sampai outing bareng!</p>
         </div>
 
-        {{-- Filter Tabs (server-side rendered for reliability) --}}
-        <div class="gallery-filters" id="galleryFilters">
-            <button class="filter-btn active" data-filter="all" onclick="loadGallery(null, null)">📷 Semua</button>
-            @forelse($categories as $cat)
-                <button class="filter-btn" data-filter="{{ $cat->slug }}"
-                    style="border-color: {{ $cat->color }}60;"
-                    onclick="loadGallery('{{ $cat->slug }}', null)">
-                    {{ $cat->icon }} {{ $cat->name }}
-                </button>
-            @empty
-            @endforelse
+        {{-- Filter Tabs (AJAX loaded) --}}
+        <div id="galleryFiltersLoader" style="display:none;text-align:center;padding:15px;">
+            <div style="display:inline-block;width:30px;height:30px;border:3px solid rgba(200,149,108,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
         </div>
+        <div class="gallery-filters" id="galleryFilters"></div>
 
         {{-- Loading Indicator --}}
         <div id="galleryLoader" style="display:none;text-align:center;padding:40px;">
-            <div style="display:inline-block;width:40px;height:40px;border:4px solid rgba(184,137,46,.15);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
-            <p style="color:var(--text-muted);margin-top:15px;font-size:.9rem;">Memuat gallery...</p>
+            <div style="display:inline-block;width:40px;height:40px;border:4px solid rgba(200,149,108,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <p style="color:var(--text-secondary);margin-top:15px;">Memuat gallery...</p>
         </div>
 
         {{-- Gallery Grid (AJAX loaded) --}}
@@ -466,13 +487,16 @@
             @forelse($galleries as $gallery)
                 @php
                     $photoUrls = $gallery->photo_urls;
+                    // If no gallery photos, use cover as fallback
                     if (empty($photoUrls) && $gallery->cover_image_url) {
                         $photoUrls = [$gallery->cover_image_url];
                     }
                     $thumbnailUrls = $gallery->thumbnail_urls;
+                    // Fallback thumbnail to original if empty
                     if (empty($thumbnailUrls) && $gallery->cover_thumbnail_url) {
                         $thumbnailUrls = [$gallery->cover_thumbnail_url];
                     }
+                    // Grid pakai thumbnail, lightbox pakai foto asli
                     $gridImage = !empty($thumbnailUrls) ? $thumbnailUrls[0] : ($gallery->cover_thumbnail_url ?? $gallery->cover_image_url);
                     $encodedPhotos = json_encode($photoUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
                     $encodedThumbs = json_encode($thumbnailUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
@@ -495,21 +519,17 @@
                             <div class="no-image">📷</div>
                         @endif
                         <span class="gallery-card-category"
-                              style="background-color: {{ $gallery->category->color }}dd;">
+                              style="background-color: {{ $gallery->category->color }}cc;">
                             {{ $gallery->category->icon }} {{ $gallery->category->name }}
                         </span>
                         @if($gallery->photo_count > 0)
-                            <span class="gallery-card-photo-count">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3l-1.5-3z"/></svg>
-                                {{ $gallery->photo_count }}
-                            </span>
+                            <span class="gallery-card-photo-count">📷 {{ $gallery->photo_count }}</span>
                         @endif
                     </div>
                     <div class="gallery-card-content">
                         <h3 class="gallery-card-title">{{ $gallery->title }}</h3>
                         <div class="gallery-card-date">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            {{ $gallery->formatted_date }}
+                            📅 {{ $gallery->formatted_date }}
                         </div>
                         @if($gallery->description)
                             <p class="gallery-card-desc">{{ $gallery->description }}</p>
@@ -525,6 +545,7 @@
             @endforelse
         </div>
 
+        {{-- Pagination (AJAX akan handle ini) --}}
         @if($galleries->hasPages())
             <div class="gallery-pagination" id="galleryPagination">
                 {{ $galleries->links() }}
@@ -536,14 +557,15 @@
 {{-- Lightbox Modal --}}
 <div class="lightbox" id="lightbox" onclick="handleLightboxClick(event)">
     <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">‹</button>
+    <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">◀</button>
     <div class="lightbox-content">
         <img id="lightboxImage" src="" alt="">
+        {{-- Loading Spinner --}}
         <div id="lightboxLoader" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;">
             <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:lightboxSpin .8s linear infinite;"></div>
         </div>
     </div>
-    <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">›</button>
+    <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">▶</button>
     <div class="lightbox-info" id="lightboxInfo" style="display:none;">
         <div class="lightbox-title" id="lightboxTitle"></div>
         <div class="lightbox-counter" id="lightboxCounter"></div>
@@ -575,11 +597,16 @@ function openLightbox(card) {
     let parsedPhotos = [];
     try {
         parsedPhotos = photosData ? JSON.parse(photosData) : [];
-    } catch (e) { parsedPhotos = []; }
+    } catch (e) {
+        parsedPhotos = [];
+    }
 
+    // Fallback: use cover image if no photos
     if (parsedPhotos.length === 0) {
         const coverUrl = card.getAttribute('data-cover');
-        if (coverUrl) parsedPhotos = [coverUrl];
+        if (coverUrl) {
+            parsedPhotos = [coverUrl];
+        }
     }
 
     currentPhotos = parsedPhotos;
@@ -594,9 +621,13 @@ function openLightbox(card) {
     if (currentPhotos.length > 0) {
         currentIndex = 0;
         showLightboxLoader(true);
-        img.onload = function() { showLightboxLoader(false); };
+
+        img.onload = function() {
+            showLightboxLoader(false);
+        };
         img.onerror = function() {
             showLightboxLoader(false);
+            // If photo fails to load, try next or show placeholder
             if (currentIndex < currentPhotos.length - 1) {
                 currentIndex++;
                 img.src = currentPhotos[currentIndex];
@@ -622,6 +653,7 @@ function closeLightbox() {
     document.getElementById('lightbox').classList.remove('active');
     document.body.style.overflow = '';
     showLightboxLoader(false);
+    // reset
     setTimeout(() => {
         document.getElementById('lightboxImage').src = '';
     }, 300);
@@ -629,14 +661,21 @@ function closeLightbox() {
 
 function navigateLightbox(direction) {
     if (currentPhotos.length <= 1) return;
+
+    // Show loader before loading next image
     showLightboxLoader(true);
+
     currentIndex = (currentIndex + direction + currentPhotos.length) % currentPhotos.length;
     const img = document.getElementById('lightboxImage');
+
     img.onload = function() {
         showLightboxLoader(false);
         document.getElementById('lightboxCounter').textContent = (currentIndex + 1) + ' / ' + currentPhotos.length;
     };
-    img.onerror = function() { showLightboxLoader(false); };
+    img.onerror = function() {
+        showLightboxLoader(false);
+    };
+
     img.src = currentPhotos[currentIndex];
     document.getElementById('lightboxCounter').textContent = (currentIndex + 1) + ' / ' + currentPhotos.length;
 }
@@ -645,6 +684,7 @@ function handleLightboxClick(e) {
     if (e.target === document.getElementById('lightbox')) closeLightbox();
 }
 
+// Keyboard navigation
 document.addEventListener('keydown', function(e) {
     const lightbox = document.getElementById('lightbox');
     if (!lightbox.classList.contains('active')) return;
@@ -653,79 +693,122 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight') navigateLightbox(1);
 });
 
+// Add spin animation for lightbox loader
 const lightboxStyle = document.createElement('style');
 lightboxStyle.textContent = `
     @keyframes lightboxSpin {
         0% { transform: translate(-50%, -50%) rotate(0deg); }
         100% { transform: translate(-50%, -50%) rotate(360deg); }
     }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
 `;
 document.head.appendChild(lightboxStyle);
 
+// ============================================
+// AJAX Gallery Filter (No Page Refresh)
+// ============================================
+
 let currentCategory = null;
 let isLoading = false;
+let filtersLoaded = false;
 
+// Load filters on page init
 function initGallery() {
-    // Filters sudah dirender server-side via Blade, tidak perlu fetch dari API
+    const filtersContainer = document.getElementById('galleryFilters');
+    const filtersLoader = document.getElementById('galleryFiltersLoader');
+
+    filtersLoader.style.display = 'block';
+    filtersContainer.innerHTML = '';
+
+    // Check URL for initial category
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialCategory = urlParams.get('category');
+
+    let url = '/api/gallery';
+    if (initialCategory) url += '?category=' + initialCategory;
+
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        filtersLoader.style.display = 'none';
+        filtersContainer.innerHTML = data.filtersHtml || '';
+        currentCategory = data.currentCategory === 'all' ? null : data.currentCategory;
+        filtersLoaded = true;
+    })
+    .catch(error => {
+        console.error('Error loading filters:', error);
+        filtersLoader.style.display = 'none';
+        filtersLoaded = true;
+    });
 }
 
+// Initialize filters on page load
 initGallery();
 
-function loadGallery(category, page) {
+function loadGallery(category = null, page = null) {
     if (isLoading) return;
     isLoading = true;
+
     currentCategory = category;
 
-    // Update active filter button using data-filter attribute
-    document.querySelectorAll('.gallery-filters .filter-btn').forEach(function(btn) {
-        var btnFilter = btn.getAttribute('data-filter');
-        if ((category === null || category === 'all') && btnFilter === 'all') {
-            btn.classList.add('active');
-        } else if (btnFilter === category) {
-            btn.classList.add('active');
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (category === null) {
+            btn.classList.toggle('active', btn.getAttribute('onclick').includes('loadGallery(null)'));
         } else {
-            btn.classList.remove('active');
+            btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${category}'`));
         }
     });
 
-    var loader = document.getElementById('galleryLoader');
-    var grid = document.getElementById('galleryGrid');
-    var pagination = document.getElementById('galleryPagination');
+    // Show loader, hide grid
+    const loader = document.getElementById('galleryLoader');
+    const grid = document.getElementById('galleryGrid');
+    const pagination = document.getElementById('galleryPagination');
 
     loader.style.display = 'block';
     grid.style.opacity = '0.5';
     grid.style.pointerEvents = 'none';
 
-    var url = '/api/gallery';
-    var params = [];
+    // Build URL - use API route for AJAX
+    let url = '/api/gallery';
+    let params = [];
     if (category) params.push('category=' + category);
     if (page) params.push('page=' + page);
     if (params.length > 0) url += '?' + params.join('&');
 
+    // AJAX request
     fetch(url)
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+    .then(response => response.json())
+    .then(data => {
+        // Update grid with new content
         grid.innerHTML = data.html;
         grid.style.opacity = '1';
         grid.style.pointerEvents = 'auto';
         loader.style.display = 'none';
 
+        // Update filters (no page jump - filters replaced in place)
+        const filtersContainer = document.getElementById('galleryFilters');
+        const filtersLoader = document.getElementById('galleryFiltersLoader');
+        if (data.filtersHtml) {
+            filtersLoader.style.display = 'none';
+            filtersContainer.innerHTML = data.filtersHtml;
+        }
+
+        // Update pagination if exists
         if (data.hasMore && pagination) {
             pagination.style.display = 'flex';
         }
 
-        grid.querySelectorAll('img').forEach(function(img) {
-            img.addEventListener('load', function() { img.classList.add('loaded'); });
-            img.addEventListener('error', function() { img.classList.add('loaded'); });
+        // Re-bind image load events
+        grid.querySelectorAll('img').forEach(img => {
+            img.addEventListener('load', () => img.classList.add('loaded'));
+            img.addEventListener('error', () => img.classList.add('loaded'));
         });
+
+        // Don't scroll - user stays where they are (filters visible)
 
         isLoading = false;
     })
-    .catch(function(error) {
+    .catch(error => {
         console.error('Error loading gallery:', error);
         loader.style.display = 'none';
         grid.style.opacity = '1';
@@ -734,15 +817,26 @@ function loadGallery(category, page) {
     });
 }
 
+// Handle pagination clicks via AJAX
 document.addEventListener('click', function(e) {
-    var paginationLink = e.target.closest('.gallery-pagination a');
+    const paginationLink = e.target.closest('.gallery-pagination a');
     if (paginationLink && document.getElementById('galleryGrid')) {
         e.preventDefault();
-        var url = paginationLink.getAttribute('href');
-        var urlObj = new URL(url, window.location.origin);
-        var page = urlObj.searchParams.get('page');
+        const url = paginationLink.getAttribute('href');
+        const urlObj = new URL(url, window.location.origin);
+        const page = urlObj.searchParams.get('page');
         loadGallery(currentCategory, page);
     }
 });
+
+// Add spin animation for loader
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endsection
