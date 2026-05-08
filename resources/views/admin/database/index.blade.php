@@ -1,3 +1,4 @@
+
 @extends('admin.layout')
 @section('title', 'Database')
 @section('page_title', '📊 Database Browser')
