@@ -49,13 +49,14 @@ class GalleryController extends Controller
 
         $currentCategory = $request->get('category', 'all');
 
-        // Generate filter buttons HTML — hanya kategori, BUKAN "Semua Momen"
-        // "Semua Momen" sudah ada hardcoded di blade
+        // Generate filter buttons HTML
         $filtersHtml = '';
+        $isAllActive = $currentCategory === 'all' || $currentCategory === null || $currentCategory === '';
+        $filtersHtml .= '<button class="filter-btn ' . ($isAllActive ? 'active' : '') . '" onclick="loadGallery(null)">Semua</button>';
         foreach ($categories as $cat) {
             $isActive = $currentCategory === $cat->slug;
             $bgStyle = $isActive ? '' : 'border-color: ' . $cat->color . '60;';
-            $filtersHtml .= '<button class="filter-btn ' . ($isActive ? 'active' : '') . '" style="' . $bgStyle . '" data-filter="' . $cat->slug . '" onclick="loadGallery(\'' . $cat->slug . '\')">' . $cat->icon . ' ' . $cat->name . '</button>';
+            $filtersHtml .= '<button class="filter-btn ' . ($isActive ? 'active' : '') . '" style="' . $bgStyle . '" data-filter="' . $cat->slug . '" onclick="loadGallery(\'' . $cat->slug . '\')">' . $cat->name . '</button>';
         }
 
         return response()->json([

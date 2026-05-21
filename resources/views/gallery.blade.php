@@ -5,12 +5,12 @@
 @section('extra_css')
 <style>
 /* ============================================
-   GALLERY PAGE - Dark Theme Match
+   GALLERY PAGE - New Bright Theme
    ============================================ */
 .gallery-page {
     padding: 120px 0 80px;
     min-height: 100vh;
-    background: var(--bg-dark);
+    background: var(--bg-page);
 }
 
 .gallery-header {
@@ -111,7 +111,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid rgba(200,149,108,.08);
+    border: 1px solid var(--border-color);
     transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -120,8 +120,8 @@
 
 .gallery-card:hover {
     transform: translateY(-6px);
-    border-color: rgba(200,149,108,.25);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--pink);
+    box-shadow: 0 8px 30px rgba(245,59,122,.12);
 }
 
 /* Active/pressed state for touch devices */
@@ -133,7 +133,7 @@
     position: relative;
     aspect-ratio: 4/3;
     overflow: hidden;
-    background: var(--brown-900);
+    background: var(--bg-dark);
 }
 
 .gallery-card-image img {
@@ -195,7 +195,7 @@
 .gallery-card-title {
     font-family: var(--font-heading);
     font-size: 1.15rem;
-    color: var(--cream);
+    color: var(--black);
     margin-bottom: 8px;
     line-height: 1.3;
 }
@@ -248,7 +248,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.97);
+    background: rgba(0,0,0,.93);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -474,7 +474,21 @@
         <div id="galleryFiltersLoader" style="display:none;text-align:center;padding:15px;">
             <div style="display:inline-block;width:30px;height:30px;border:3px solid rgba(200,149,108,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
         </div>
-        <div class="gallery-filters" id="galleryFilters"></div>
+        <div class="gallery-filters" id="galleryFilters">
+            @php
+                $selectedCategory = request()->get('category');
+            @endphp
+            <button class="filter-btn {{ $selectedCategory ? '' : 'active' }}" onclick="loadGallery(null)">Semua</button>
+            @foreach($categories as $category)
+                @php
+                    $isActive = $selectedCategory === $category->slug;
+                    $borderStyle = $isActive ? '' : 'border-color: ' . $category->color . '60;';
+                @endphp
+                <button class="filter-btn {{ $isActive ? 'active' : '' }}" style="{{ $borderStyle }}" onclick="loadGallery('{{ $category->slug }}')">
+                    {{ $category->name }}
+                </button>
+            @endforeach
+        </div>
 
         {{-- Loading Indicator --}}
         <div id="galleryLoader" style="display:none;text-align:center;padding:40px;">
@@ -716,8 +730,8 @@ function initGallery() {
     const filtersContainer = document.getElementById('galleryFilters');
     const filtersLoader = document.getElementById('galleryFiltersLoader');
 
+    const existingFilters = filtersContainer.innerHTML;
     filtersLoader.style.display = 'block';
-    filtersContainer.innerHTML = '';
 
     // Check URL for initial category
     const urlParams = new URLSearchParams(window.location.search);
@@ -730,13 +744,16 @@ function initGallery() {
     .then(response => response.json())
     .then(data => {
         filtersLoader.style.display = 'none';
-        filtersContainer.innerHTML = data.filtersHtml || '';
+        if (data.filtersHtml) {
+            filtersContainer.innerHTML = data.filtersHtml;
+        }
         currentCategory = data.currentCategory === 'all' ? null : data.currentCategory;
         filtersLoaded = true;
     })
     .catch(error => {
         console.error('Error loading filters:', error);
         filtersLoader.style.display = 'none';
+        filtersContainer.innerHTML = existingFilters;
         filtersLoaded = true;
     });
 }
